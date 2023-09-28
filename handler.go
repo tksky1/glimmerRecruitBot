@@ -1,10 +1,13 @@
 package main
 
 import (
-	"github.com/bitly/go-simplejson"
-	"github.com/gin-gonic/gin"
 	"io"
 	"strings"
+
+	"github.com/bitly/go-simplejson"
+	"github.com/gin-gonic/gin"
+
+	"glimmerBot/dice"
 )
 
 func check(err error) bool {
@@ -12,6 +15,12 @@ func check(err error) bool {
 		return true
 	}
 	return false
+}
+
+type HandlerFn func(c *gin.Context)
+
+var KnowService map[string]HandlerFn = map[string]HandlerFn{
+	"/rp": dice.LuckyHandler,
 }
 
 func handlePost(ctx *gin.Context) {
@@ -51,5 +60,9 @@ func handlePost(ctx *gin.Context) {
 	if len(parts) == 4 && parts[0] == "表扬" {
 		println(msg)
 		sendGroupMsg(parts[1], parts[2], parts[3])
+	}
+
+	if fn, ok := KnowService[parts[0]]; ok {
+		fn(ctx)
 	}
 }
